@@ -1,3 +1,4 @@
+#20180518    
 authors <- data.frame(
   surname = I(c("Tukey", "Venables", "Tierney", "Ripley", "McNeil")),
   nationality = c("US", "Australia", "US", "UK", "Australia"),
