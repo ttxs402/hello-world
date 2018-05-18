@@ -27,4 +27,4 @@ m1 <- merge(authors, books, by.x = "surname", by.y = "name",all=TRUE)
 x <- data.frame(k1 = c(NA,NA,3,4,5), k2 = c(1,NA,NA,4,5), data = 1:5)
 y <- data.frame(k1 = c(NA,2,NA,4,5), k2 = c(NA,NA,3,4,5), data = 1:5)
 
-匹配代码如下merge(x, y, by = c("k1","k2"))  #inner join
+匹配代码如:merge(x, y, by = c("k1","k2"))  #inner join
