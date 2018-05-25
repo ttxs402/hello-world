@@ -1,0 +1,121 @@
+library(ggplot2)
+set.seed(1410)
+dsmall<-diamonds[sample(nrow(diamonds),100),]
+View(dsmall)
+#颜色，大小，形状属性标度
+qplot(data=diamonds,x=carat,y=price)
+qplot(data=diamonds,x=log(carat),y=log(price))
+qplot(carat,x*y*z,data=diamonds)
+qplot(carat,price,data=dsmall,colour=color)#添加颜色和切工信息
+qplot(carat,price,data=dsmall,shape=cut)
+qplot(carat,price,data=diamonds,alpha=I(1/10))
+qplot(carat,price,data=diamonds,alpha=I(1/100))
+qplot(carat,price,data=diamonds,alpha=I(1/200))
+qplot(carat,price,data=dsmall,colour=I("red"))#无标度，都为红色
+#几何对象geom
+qplot(carat,price,data=dsmall,geom = "point")
+qplot(color,price,data=dsmall,geom = "boxplot")#按照颜色分类的箱线图
+qplot(carat,price,data=dsmall,geom = "line")
+qplot(carat,data=dsmall,geom = "histogram")
+qplot(carat,data=dsmall,geom = "density",facets = color~.)#分面
+qplot(carat,data=dsmall,geom = "density",facets = color~.,colour=color)#分面
+qplot(carat,data=dsmall,geom = "density",facets = color~.,fill=color)#分面
+qplot(carat,data = diamonds,facets = color~.,geom = "histogram",binwidth=0.1,xlim = c(0,3),fill=color,xlab="克拉",ylab = "数量",main = "克拉-数量直方图（by 颜色）")
+qplot(carat,data = diamonds,facets = color~.,geom = "histogram",binwidth=0.1,xlim = c(0,3))#facets = color~.表示单列多行
+qplot(carat,data = diamonds,facets = .~color,geom = "histogram",binwidth=0.1,xlim = c(0,3))#facets = .~color表示单行多列
+qplot(carat,..density..,data = diamonds,facets = color~.,geom = "histogram",binwidth=0.1,xlim = c(0,3))
+qplot(carat,price,data=dsmall,geom = c("point" ,"smooth"))
+qplot(carat,price,data=diamonds,geom = c("point" ,"smooth"))
+qplot(carat,price,data=dsmall,geom = c("point" ,"smooth"),span=0.2)#span设置带宽
+#boxplot
+a<-qplot(color,price/carat,data=diamonds,geom = "boxplot",colour=I("green"),fill=I("pink"),size=I(0.5))#按照颜色分类的箱线图
+qplot(color,price/carat,data=diamonds,geom = "jitter",alpha=I(1/50),colour=I("blue"))#按照颜色分类,加入alpha参数调节透明度
+ggsave("a.jpg")
+#histogram & density plot
+qplot(carat,data=diamonds,geom = "histogram",fill=I("pink"))
+qplot(carat,data=diamonds,geom = "density")
+qplot(carat,data=diamonds,geom = "histogram",binwidth=0.1,xlim=c(0,3),fill=I("pink"))
+##不同组之间的对比
+qplot(carat,data=diamonds,geom = "density",colour=color)
+qplot(carat,data=diamonds,geom = "density",fill=color)
+qplot(carat,data=diamonds,geom = "histogram",fill=color)
+#barplot
+qplot(color,data=diamonds,geom = "bar")
+qplot(color,data=diamonds,geom = "bar",fill=color)
+qplot(color,data=diamonds,geom = "bar",weight=carat)+scale_y_continuous("carat")
+#线条图和路径图
+qplot(date,unemploy/pop,data=economics,geom = "line",colour=I("red"))
+qplot(date,uempmed,data=economics,geom = "line",colour=I('yellow'))
+View(economics)
+year<-function(x) as.POSIXlt(x)$year+1900#注意as.POSIXlt和as.POSIXct的区别，前者返回list 后者返回numeric或者数据框
+qplot(unemploy/pop,uempmed,data=economics,geom = c("point","path"))
+qplot(unemploy/pop,uempmed,data=economics,geom = "path",colour=year(date))
+#加上x,y坐标轴标签和主题
+qplot(carat,price,data = dsmall,xlab = "Price($)",ylab = "Weight(carat)",main = "Price-weight relationship")
+qplot(carat,price,data=dsmall,log = "xy")
+
+###############
+# ggplot2图层#
+##############
+
+p1<-qplot(displ,hwy,data = ggplot2::mpg,colour=factor(cyl))#将cyl转换成因子factor
+p2<-qplot(displ,hwy,data = ggplot2::mpg,colour=cyl)
+library(gridExtra)
+grid.arrange(p1, p2, ncol=2)
+qplot(displ,hwy,data = ggplot2::mpg,geom = "line")#无意义
+qplot(displ,data = ggplot2::mpg,geom = "bar")+scale_y_continuous("hwy")#无意义
+qplot(displ,hwy,data=mpg,facets = .~year)+geom_smooth()
+qplot(displ,hwy,data=mpg,facets = year~.)+geom_smooth()
+
+p<-ggplot(data=diamonds,aes(x=carat,y=price,colour=cut))+geom_point()
+p<-ggplot(diamonds,aes(x=carat))+geom_histogram(binwidth = 2,fill="steelblue")
+p<-ggplot(msleep,aes(sleep_rem/sleep_total,awake))
+summary(p)
+p<-p+geom_point()
+library(scales)
+bestfit<-geom_smooth(method = "lm",se=F,colour=alpha("steelblue",0.5),size=2)
+qplot(sleep_rem,sleep_total,data=msleep)+bestfit
+qplot(awake,brainwt,data=msleep,log="y")+bestfit
+#全局更换数据
+p<-ggplot(mtcars,aes(mpg,wt,colour=factor(cyl)))+geom_point()
+p
+mtcars<-transform(mtcars,mpg=mpg^2)
+p%+%mtcars
+##累计占比柱状图
+cum_func <- function(variable_to_deal){
+  tem <- NULL
+  for (i in 1:ncol(variable_to_deal)){
+    tem_i <- cumsum(variable_to_deal[,i])
+    tem <- cbind(tem,tem_i)
+  }
+  colnames(tem) <- colnames(variable_to_deal)
+  a <- melt(variable_to_deal)
+  b <- melt(tem)
+  colnames(a)=c("Var1","Var2","value")
+  colnames(b)=c("Var1","Var2","value")
+  c <- merge(a,b,by=c('Var2','Var1'),all=T)
+  c$value.x <- round(c$value.x,4)
+  c$value.y <- 1-round(c$value.y,4)+c$value.x#主要是调节数字显示的位置
+  c <- c[order(c$Var2,-c$value.y),]
+  c$Var2 <- as.character(c$Var2)
+  #c$value.y[c$value.x<0.04] <- NaN
+  return(c)
+}
+library(ggplot2)
+library(ggthemes)
+library(reshape2)
+
+cust_flag <- prop.table(table(cust1$cust_flag,cust1$create_dt),margin = 2)
+cust_cum<-cum_func(cust_flag)
+ggplot(cust_cum,aes(x=Var2,weight=value.x,fill=factor(as.factor(Var1))))+
+  geom_bar(position="stack")+
+  geom_text(data=cust_cum,aes(x= Var2,y =value.y),
+            label=paste(cust_cum$value.x*100,'%',sep = ''),colour = "black", vjust=1,check_overlap = T)+
+  scale_y_continuous(breaks = seq(0, 1, 0.2),labels=scales::percent)+
+  theme(plot.title = element_text(hjust = 0.5,size=16))+
+  theme_bw()+
+  theme(legend.title=element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank())+
+  labs(title="The Approval Rate of Recent 7 Days",x="Application Date",y="proportion")+theme(axis.text.x = element_text(angle = 45, hjust = 0.5, vjust = 0.5))
